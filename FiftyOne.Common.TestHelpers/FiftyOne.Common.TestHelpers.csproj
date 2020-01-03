@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>FiftyOne.Common.TestHelpers</AssemblyName>
+    <RootNamespace>FiftyOne.Common.TestHelpers</RootNamespace>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    
+	<!-- NuGet package properties -->
+	<PackageId>FiftyOne.Common.TestHelpers</PackageId>
+	<Title>51Degrees automated test helper classes</Title>
+	<PackageDescription>Helper library containing implementations for classes that we often want to mock out.</PackageDescription>
+	<Authors>51D_Steve;Ben51Degrees;Joseph51Degrees</Authors>
+	<PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
+	<PackageIconUrl>https://51degrees.com/portals/0/Logos/Square%20Logo.png?width=64</PackageIconUrl>
+	<Copyright>51Degrees Mobile Experts Limited</Copyright>
+	<PackageTags>51degrees</PackageTags>
+	<RepositoryUrl>https://github.com/51Degrees/common-dotnet</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0" />
+    <PackageReference Include="Microsoft.SourceLink.Vsts.Git" Version="1.0.0-beta2-19367-01">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
+  </ItemGroup>
+
+</Project>
