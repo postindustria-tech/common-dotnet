@@ -64,6 +64,16 @@ namespace FiftyOne.Common.Wrappers.IO
             get { return InfoInstance.LastWriteTimeUtc; }
         }
 
+        public DateTime CreationTimeUtc
+        {
+            get { return InfoInstance.CreationTimeUtc; }
+        }
+
+        public DateTime LastAccessTimeUtc
+        {
+            get { return InfoInstance.LastAccessTimeUtc; }
+        }
+
         public IDirectoryInfoWrapper Directory
         {
             get { return DirectoryInfoWrapperFactory(InfoInstance.Directory); }

@@ -76,6 +76,31 @@ namespace FiftyOne.Common.Wrappers.IO
             return File.GetCreationTimeUtc(path);
         }
 
+        public DateTime GetLastAccessTimeUtc(string path)
+        {
+            return File.GetLastAccessTimeUtc(path);
+        }
+
+        public DateTime GetLastWriteTimeUtc(string path)
+        {
+            return File.GetLastWriteTimeUtc(path);
+        }
+
+        public void SetCreationTimeUtc(string path, DateTime creationTimeUtc)
+        {
+            File.SetCreationTimeUtc(path, creationTimeUtc);
+        }
+
+        public void SetLastAccessTimeUtc(string path, DateTime lastAccessTimeUtc)
+        {
+            File.SetLastAccessTimeUtc(path, lastAccessTimeUtc);
+        }
+
+        public void SetLastWriteTimeUtc(string path, DateTime lastWriteTimeUtc)
+        {
+            File.SetLastWriteTimeUtc(path, lastWriteTimeUtc);
+        }
+
         public Stream OpenRead(string path)
         {
             return File.OpenRead(path);

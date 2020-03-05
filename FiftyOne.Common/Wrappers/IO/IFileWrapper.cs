@@ -47,6 +47,12 @@ namespace FiftyOne.Common.Wrappers.IO
         void Delete(string path);
 
         DateTime GetCreationTimeUtc(string path);
+        DateTime GetLastAccessTimeUtc(string path);
+        DateTime GetLastWriteTimeUtc(string path);
+
+        void SetCreationTimeUtc(string path, DateTime creationTimeUtc);
+        void SetLastAccessTimeUtc(string path, DateTime lastAccessTimeUtc);
+        void SetLastWriteTimeUtc(string path, DateTime lastWriteTimeUtc);
 
         Stream OpenRead(string path);
     }

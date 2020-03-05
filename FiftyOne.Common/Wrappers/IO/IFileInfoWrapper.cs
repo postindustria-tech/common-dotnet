@@ -32,7 +32,11 @@ namespace FiftyOne.Common.Wrappers.IO
     public interface IFileInfoWrapper
     {
         string FullName { get; }
+
         DateTime LastWriteTimeUtc { get; }
+        DateTime CreationTimeUtc { get; }
+        DateTime LastAccessTimeUtc { get; }
+
         FileInfo InfoInstance { get; }
         IDirectoryInfoWrapper Directory { get; }
         bool Exists { get; }
