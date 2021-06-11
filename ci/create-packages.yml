@@ -12,6 +12,6 @@ variables:
 stages:
 - template: shared-build-test-create.yml
   parameters:
-    targetPublishConfig: 'Debug' # Specify the target build configuration to publish.
+    targetPublishConfig: 'Release' # Specify the target build configuration to publish.
     nugetVersion: $(nugetVersion)
     imageName: $(imageName)
