@@ -4,14 +4,6 @@ trigger: none
 # Don't trigger for a pull request.
 pr: none
 
-# Schedule to run overnight
-schedules:
-- cron: "0 20 * * *"
-  displayName: Daily overnight build
-  branches:
-    include:
-    - develop
-
 # Use shared variables
 variables:
 - template: shared-variables.yml
