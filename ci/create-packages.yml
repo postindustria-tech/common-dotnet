@@ -1,5 +1,7 @@
-# Debug build is only needed for investigating issues so should be manually triggered only
-trigger: none
+trigger:
+  - master
+  - develop
+  - release/*
 
 # Don't trigger for a pull request.
 pr: none
