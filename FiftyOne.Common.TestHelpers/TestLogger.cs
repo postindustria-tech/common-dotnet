@@ -29,6 +29,9 @@ namespace FiftyOne.Common.TestHelpers
 {
     public class TestLogger<TLog> : TestLogger, ILogger<TLog>
     {
+        public TestLogger(string category) : base(category)
+        {
+        }
     }
 
     /// <summary>
@@ -49,10 +52,16 @@ namespace FiftyOne.Common.TestHelpers
         /// </summary>
         public List<string> ErrorsLogged { get; set; }
 
-        public TestLogger()
+        /// <summary>
+        /// The category is usually the name of the type that the logger is for (if any)
+        /// </summary>
+        public string Category { get; private set; }
+
+        public TestLogger(string category)
         {
             WarningsLogged = new List<string>();
             ErrorsLogged = new List<string>();
+            Category = category;
         }
 
         /// <summary>
