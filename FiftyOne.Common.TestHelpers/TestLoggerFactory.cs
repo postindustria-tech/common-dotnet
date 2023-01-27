@@ -44,7 +44,7 @@ namespace FiftyOne.Common.TestHelpers
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new TestLogger();
+            var logger = new TestLogger(categoryName);
             Loggers.Add(logger);
             return logger;
         }
