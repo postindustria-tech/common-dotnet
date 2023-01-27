@@ -29,7 +29,7 @@ namespace FiftyOne.Common.TestHelpers
 {
     public class TestLogger<TLog> : TestLogger, ILogger<TLog>
     {
-        public TestLogger(string category) : base(category)
+        public TestLogger() : base(typeof(TLog).FullName)
         {
         }
     }
@@ -62,6 +62,9 @@ namespace FiftyOne.Common.TestHelpers
             WarningsLogged = new List<string>();
             ErrorsLogged = new List<string>();
             Category = category;
+        }
+        public TestLogger() : this("")
+        {
         }
 
         /// <summary>
