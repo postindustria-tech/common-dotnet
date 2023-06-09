@@ -1,20 +1,17 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# FiftyOne.Common
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+![51Degrees](https://51degrees.com/img/logo.png?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=dotnet-open-source "Data rewards the curious") **Common Dotnet**
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+[Developer Documentation](https://51degrees.com/pipeline-dotnet/index.html?utm_source=github&utm_medium=repository&utm_content=documentation&utm_campaign=dotnet-open-source "developer documentation")
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+[![NuGet](https://img.shields.io/nuget/v/FiftyOne.Common.svg)](https://www.nuget.org/packages/FiftyOne.Common)
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://www.visualstudio.com/en-us/docs/git/create-a-readme). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Description
+
+FiftyOne.Common is a shared library containing wrappers, constants, and test helpers used across the 51Degrees organization. It provides common functionality and resources to facilitate development across different projects and components within the organization.
+
+## Contributing
+
+If you would like to contribuite please follow the contribution guidelines outlined in [CONTRIBUTING.md](https://github.com/51Degrees/common-dotnet/blob/main/CONTRIBUTING.md).
+
+
