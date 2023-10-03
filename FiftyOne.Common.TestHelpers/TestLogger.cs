@@ -21,10 +21,12 @@
  * ********************************************************************* */
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace FiftyOne.Common.TestHelpers
 {
@@ -42,53 +44,96 @@ namespace FiftyOne.Common.TestHelpers
     /// </summary>
     public class TestLogger : ILogger
     {
+        /// <summary>
+        /// Container for the logged data and its meta.
+        /// </summary>
+        public sealed class ExtendedLogEntry
+        {
+            public readonly DateTime Timestamp;
+            public readonly LogLevel LogLevel;
+            public readonly string Message;
+            public readonly Exception Exception;
+
+            internal ExtendedLogEntry(
+                DateTime timestamp,
+                LogLevel logLevel,
+                string message,
+                Exception exception)
+            {
+                Timestamp = timestamp;
+                LogLevel = logLevel;
+                Message = message;
+                Exception = exception;
+            }
+
+            public override string ToString()
+            {
+                StringBuilder s = new StringBuilder();
+                s.Append(nameof(ExtendedLogEntry));
+                s.Append("(");
+                s.Append(nameof(Timestamp)); s.Append(":"); s.Append(Timestamp);
+                s.Append(", ");
+                s.Append(nameof(LogLevel)); s.Append(":"); s.Append(LogLevel);
+                s.Append(", ");
+                s.Append(nameof(Message)); s.Append(":"); s.Append(Message);
+                s.Append(", ");
+                s.Append(nameof(Exception)); s.Append(":"); s.Append(Exception);
+                s.Append(")");
+                return s.ToString();
+            }
+        }
 
         /// <summary>
         /// List of log entries sent to the logger. 
         /// </summary>
-        private readonly List<KeyValuePair<LogLevel, string>> _entries = 
-            new List<KeyValuePair<LogLevel, string>>();
+        private readonly List<ExtendedLogEntry> _entries = new List<ExtendedLogEntry>();
 
         /// <summary>
         /// List of log entries sent to the logger. 
         /// </summary>
-        public IReadOnlyList<KeyValuePair<LogLevel, string>> Entries => _entries;
+        public IReadOnlyList<ExtendedLogEntry> ExtendedEntries => _entries;
+
+        /// <summary>
+        /// List of log entries sent to the logger. 
+        /// </summary>
+        public IReadOnlyList<KeyValuePair<LogLevel, string>> Entries 
+            => _entries.Select(t => new KeyValuePair<LogLevel, string>(t.LogLevel, t.Message)).ToList();
+
+        /// <summary>
+        /// Convenience filter for convenience properties. 
+        /// </summary>
+        private IEnumerable<string> GetMessages(LogLevel logLevel)
+            => _entries.Where(i => i.LogLevel == logLevel).Select(i => i.Message);
 
         /// <summary>
         /// Enumerable of the text of critical entries that have been logged.
         /// </summary>
-        public IEnumerable<string> CriticalEntries => _entries.Where(i =>
-            i.Key == LogLevel.Critical).Select(i => i.Value);
+        public IEnumerable<string> CriticalEntries => GetMessages(LogLevel.Critical);
 
         /// <summary>
         /// Enumerable of the text of warning entries that have been logged.
         /// </summary>
-        public IEnumerable<string> WarningEntries => _entries.Where(i =>
-            i.Key == LogLevel.Warning).Select(i => i.Value);
+        public IEnumerable<string> WarningEntries => GetMessages(LogLevel.Warning);
 
         /// <summary>
         /// Enumerable of the text of error entries that have been logged.
         /// </summary>
-        public IEnumerable<string> ErrorEntries => _entries.Where(i =>
-            i.Key == LogLevel.Error).Select(i => i.Value);
+        public IEnumerable<string> ErrorEntries => GetMessages(LogLevel.Error);
 
         /// <summary>
         /// Enumerable of the text of information entries that have been logged.
         /// </summary>
-        public IEnumerable<string> InfoEntries => _entries.Where(i =>
-            i.Key == LogLevel.Information).Select(i => i.Value);
+        public IEnumerable<string> InfoEntries => GetMessages(LogLevel.Information);
 
         /// <summary>
         /// Enumerable of the text of debug entries that have been logged.
         /// </summary>
-        public IEnumerable<string> DebugEntries => _entries.Where(i =>
-            i.Key == LogLevel.Debug).Select(i => i.Value);
+        public IEnumerable<string> DebugEntries => GetMessages(LogLevel.Debug);
 
         /// <summary>
         /// Enumerable of the text of trace entries that have been logged.
         /// </summary>
-        public IEnumerable<string> TraceLogged => _entries.Where(i =>
-            i.Key == LogLevel.Trace).Select(i => i.Value);
+        public IEnumerable<string> TraceLogged => GetMessages(LogLevel.Trace);
 
         /// <summary>
         /// The category is usually the name of the type that the logger is for (if any)
@@ -175,7 +220,11 @@ namespace FiftyOne.Common.TestHelpers
             Func<TState, Exception, string> formatter)
         {
             var value = formatter(state, exception);
-            _entries.Add(new KeyValuePair<LogLevel, string>(logLevel, value));
+            _entries.Add(new ExtendedLogEntry(
+                DateTime.Now,
+                logLevel,
+                value,
+                exception));
         }
     }
 }
