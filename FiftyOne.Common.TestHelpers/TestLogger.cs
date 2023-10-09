@@ -91,19 +91,24 @@ namespace FiftyOne.Common.TestHelpers
         /// <summary>
         /// List of log entries sent to the logger. 
         /// </summary>
-        public IReadOnlyList<ExtendedLogEntry> ExtendedEntries => _entries;
+        public IReadOnlyList<ExtendedLogEntry> ExtendedEntries => CurrentEntries.ToList();
+        
+        /// <summary>
+        /// Locks the length of the collection to allow mutations during enumeration without causing exception.
+        /// </summary>
+        private IEnumerable<ExtendedLogEntry> CurrentEntries => _entries.Take(_entries.Count);
 
         /// <summary>
         /// List of log entries sent to the logger. 
         /// </summary>
         public IReadOnlyList<KeyValuePair<LogLevel, string>> Entries 
-            => _entries.Select(t => new KeyValuePair<LogLevel, string>(t.LogLevel, t.Message)).ToList();
+            => CurrentEntries.Select(t => new KeyValuePair<LogLevel, string>(t.LogLevel, t.Message)).ToList();
 
         /// <summary>
         /// Convenience filter for convenience properties. 
         /// </summary>
         private IEnumerable<string> GetMessages(LogLevel logLevel)
-            => _entries.Where(i => i.LogLevel == logLevel).Select(i => i.Message);
+            => CurrentEntries.Where(i => i.LogLevel == logLevel).Select(i => i.Message);
 
         /// <summary>
         /// Enumerable of the text of critical entries that have been logged.
