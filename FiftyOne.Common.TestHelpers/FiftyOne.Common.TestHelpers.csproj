@@ -11,7 +11,7 @@
 	<PackageId>FiftyOne.Common.TestHelpers</PackageId>
 	<Title>51Degrees automated test helper classes</Title>
 	<PackageDescription>Helper library containing implementations for classes that we often want to mock out.</PackageDescription>
-	<Authors>51D_Steve;Ben51Degrees;Joseph51Degrees</Authors>
+	<Authors>51Degrees Engineering</Authors>
 	<PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
 	<PackageIconUrl>https://51degrees.com/portals/0/Logos/Square%20Logo.png?width=64</PackageIconUrl>
 	<Copyright>51Degrees Mobile Experts Limited</Copyright>
