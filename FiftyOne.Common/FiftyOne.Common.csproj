@@ -18,12 +18,20 @@
 	<PackageTags>51degrees</PackageTags>
 	<RepositoryUrl>https://github.com/51Degrees/common-dotnet</RepositoryUrl>
 	<PackageProjectUrl>https://51degrees.com</PackageProjectUrl>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.Github" Version="1.1.1">
