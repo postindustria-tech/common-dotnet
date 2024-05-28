@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiftyOne.Common", "FiftyOne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiftyOne.Common.TestHelpers", "FiftyOne.Common.TestHelpers\FiftyOne.Common.TestHelpers.csproj", "{3BFA24C1-973E-4D5F-8F20-A19171E349F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.Common.Test", "FiftyOne.Common.Test\FiftyOne.Common.Test.csproj", "{5A27B65D-055D-40A4-BD7F-3E696A684610}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.Common.Tests", "FiftyOne.Common.Test\FiftyOne.Common.Tests.csproj", "{5A27B65D-055D-40A4-BD7F-3E696A684610}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
