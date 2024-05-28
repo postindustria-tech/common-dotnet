@@ -1,9 +1,11 @@
 using FiftyOne.Common.Services;
 using FiftyOne.Common.TestHelpers;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Moq;
+using System;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FiftyOne.Common.Test
 {
