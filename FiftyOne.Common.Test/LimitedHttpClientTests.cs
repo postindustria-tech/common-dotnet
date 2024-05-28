@@ -87,6 +87,44 @@ namespace FiftyOne.Common.Tests
         }
 
         /// <summary>
+        /// Check that when an exception is thrown by the underlying client,
+        /// that the count is still decremented. Otherwise the wrapper will
+        /// eventually stop returning responses completely.
+        /// </summary>
+        /// <param name="method"></param>
+        [DataRow("GET")]
+        [DataRow("POST")]
+        [DataTestMethod]
+        public void FailedRequest(string method)
+        {
+            // Arrange
+            var handler = new TestHttpHandler((s) =>
+            {
+                throw new Exception();
+            });
+            var limiter = new LimitedHttpClientWrapper(
+                _loggerFactory.CreateLogger<LimitedHttpClientWrapper>(),
+                handler.Client,
+                1);
+
+            // Act
+            Task<HttpResponseMessage> result = null;
+            switch (method)
+            {
+                case "GET":
+                    result = limiter.GetAsync("http://51degrees.com", CancellationToken.None);
+                    break;
+                case "POST":
+                    result = limiter.PostAsync("https://51degrees.com", null, CancellationToken.None);
+                    break;
+            }
+
+            // Assert
+            Assert.IsTrue(result.IsFaulted);
+            AssertNoRemainingRequests(limiter);
+        }
+
+        /// <summary>
         /// Check that multiple requests are passed to the underlying service
         /// correctly when there are less than the specified number of max
         /// concurrent requests.

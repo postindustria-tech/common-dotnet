@@ -20,14 +20,14 @@ namespace FiftyOne.Common.Services
         private readonly ILogger<LimitedHttpClientWrapper> _logger;
         private readonly HttpClient _client;
         private readonly int _maxConcurrent;
-        private readonly ConcurrentDictionary<int, Task> _requests;
+        private int _currentRequests;
 
         /// <summary>
         /// Number of current requests that are being processed.
         /// Note that there may be a slight delay (no more than a millisecond
         /// or two) as the removal relies on a continuation.
         /// </summary>
-        public int CurrentRequests => _requests.Count;
+        public int CurrentRequests => _currentRequests;
 
         /// <summary>
         /// Constructor
@@ -49,7 +49,7 @@ namespace FiftyOne.Common.Services
             _logger = logger;
             _client = httpClient;
             _maxConcurrent = maxConcurrent;
-            _requests = new ConcurrentDictionary<int, Task>();
+            _currentRequests = 0;
         }
 
         public Task<HttpResponseMessage> GetAsync(
@@ -82,19 +82,13 @@ namespace FiftyOne.Common.Services
         private Task<HttpResponseMessage> WrapRequest(
             Func<Task<HttpResponseMessage>> getResponse)
         {
-            if (_requests.Count < _maxConcurrent)
+            if (_currentRequests < _maxConcurrent)
             {
+                Interlocked.Increment(ref _currentRequests);
                 var request = getResponse();
-                if (_requests.TryAdd(request.Id, request) == false)
-                {
-                    throw new Exception("Failed to add request.");
-                }
                 request.ContinueWith(t =>
                 {
-                    if (_requests.TryRemove(request.Id, out var removed) == false)
-                    {
-                        _logger.LogError("Failed to remove completed request.");
-                    }
+                    Interlocked.Decrement(ref _currentRequests);
                 });
                 return request;
             }
