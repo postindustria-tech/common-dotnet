@@ -4,7 +4,7 @@ using System.Text;
 
 namespace FiftyOne.Common.CloudStorage.Concepts
 {
-    public interface IBlobMetadata
+    public interface IBlobMetadata: IDisposable
     {
         string Name { get; }
         DateTime? LastModified { get; }
