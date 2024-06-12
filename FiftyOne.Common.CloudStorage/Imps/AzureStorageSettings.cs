@@ -9,12 +9,12 @@ namespace FiftyOne.Common.CloudStorage.Imps
     public class AzureStorageSettings: IBlobClientBuilder
     {
         public readonly string ConnectionString;
-        public readonly string Container;
+        public readonly string ContainerName;
 
-        public AzureStorageSettings(string ConnectionString, string Container)
+        public AzureStorageSettings([UnusedParametersSink] string ConnectionString, string ContainerName)
         {
             this.ConnectionString = ConnectionString;
-            this.Container = Container;
+            this.ContainerName = ContainerName;
         }
 
         public IBlobClient Build()
