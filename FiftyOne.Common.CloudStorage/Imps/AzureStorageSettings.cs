@@ -12,13 +12,30 @@ namespace FiftyOne.Common.CloudStorage.Imps
         public string BlobEndpoint { get; private set; }
         public string ContainerName { get; private set; }
 
-        public AzureStorageSettings(string AccountName, string AccountKey, string BlobEndpoint, string ContainerName)
+        public AzureStorageSettings(
+            string ContainerName,
+            string AccountName,
+            string AccountKey,
+            string BlobEndpoint)
         {
             this.AccountName = AccountName;
             this.AccountKey = AccountKey;
             this.BlobEndpoint = BlobEndpoint;
             this.ContainerName = ContainerName;
         }
+        public AzureStorageSettings(
+            string ContainerName,
+            string AccountName,
+            string AccountKey,
+            string DefaultEndpointsProtocol,
+            string EndpointSuffix)
+            : this(
+                  ContainerName, 
+                  AccountName, 
+                  AccountKey,
+                  $"{DefaultEndpointsProtocol}://{AccountName}.{EndpointSuffix}/")
+        { }
+
 
         public IBlobClient Build()
         {

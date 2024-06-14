@@ -56,7 +56,34 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 throw new ArgumentException($"{typeof(T).FullName} is not assignable from {type.FullName}.", nameof(type));
             }
 
-            var constructor = type.GetConstructors().First();
+            var constructors = type.GetConstructors();
+            if (constructors.Length == 0)
+            {
+                throw new ArgumentException($"{typeof(T).FullName} has no accessible constructors.", nameof(type));
+            }
+            var errors = new List<Exception>();
+            foreach (var constructor in constructors)
+            {
+                object result;
+                try
+                {
+                    result = ConstructFromDictionary(dict, constructor);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                    continue;
+                }
+                if (result is T t)
+                {
+                    return t;
+                }
+                throw new ArgumentException($"Result type '{result.GetType().FullName}' does not implement '{typeof(T).Name}'.", typeof(T).FullName);
+            }
+            throw new AggregateException($"Failed to find suitable constructor for '{type.FullName}'.", errors);
+        }
+
+        private static object ConstructFromDictionary(Dictionary<string, string> dict, ConstructorInfo constructor) {
             var parameters = constructor.GetParameters();
             var args = new object?[parameters.Length];
             var sinks = new HashSet<int>();
@@ -102,21 +129,16 @@ namespace FiftyOne.Common.CloudStorage.Factory
                     break;
                 default:
                     var sinkDescriptions = string.Join(", ", sinks.Select(j => $"({j}: {parameters[j].Name})"));
-                    errors.Add(new ArgumentException($"Multiple occurrences of {nameof(UnusedParametersSinkAttribute)} found: {sinkDescriptions}", type.FullName));
+                    errors.Add(new ArgumentException($"Multiple occurrences of {nameof(UnusedParametersSinkAttribute)} found: {sinkDescriptions}", constructor.ToString()));
                     break;
             }
 
             if (errors.Count > 0)
             {
-                throw new AggregateException($"Failed to construct an instance of {type.Name}", errors);
+                throw new AggregateException($"Failed to invoke {constructor}.", errors);
             }
 
-            var result = constructor.Invoke(args);
-            if (result is T t)
-            {
-                return t;
-            }
-            throw new ArgumentException($"Result type '{result.GetType().FullName}' does not implement '{typeof(T).Name}'.", typeof(T).FullName);
+            return constructor.Invoke(args);
         }
     }
 }
