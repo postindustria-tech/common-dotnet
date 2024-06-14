@@ -22,8 +22,27 @@ namespace FiftyOne.Common.CloudStorage.Uploader
 
         public void Dispose()
         {
-            uploadDelegate.Invoke(temporaryStreamWrapper.ReadableStream);
-            temporaryStreamWrapper.Dispose();
+            var errors = new List<Exception>();
+            try
+            {
+                uploadDelegate.Invoke(temporaryStreamWrapper.ReadableStream);
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
+            }
+            try
+            {
+                temporaryStreamWrapper.Dispose();
+            }
+            catch (Exception e)
+            {
+                errors.Add(e); 
+            }
+            if (errors.Count != 0)
+            {
+                throw new AggregateException($"Failed to dispose of {this.GetType().Name}.", errors);
+            }
         }
     }
 }

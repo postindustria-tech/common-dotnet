@@ -38,11 +38,37 @@ namespace FiftyOne.Common.CloudStorage.StreamWrappers
 
         public void Dispose()
         {
-            _writeStream?.Dispose();
+            var errors = new List<Exception>();
+            try
+            {
+                _writeStream?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex);
+            }
             _writeStream = null;
-            _readStream?.Dispose();
+            try
+            {
+                _readStream?.Dispose();
+            }
+            catch (Exception e)
+            {
+                errors.Add(e);
+            }
             _readStream = null;
-            File.Delete(_path);
+            try
+            {
+                File.Delete(_path);
+            }
+            catch (Exception e)
+            {
+                errors.Add(e);
+            }
+            if (errors.Count != 0)
+            {
+                throw new AggregateException($"Failed to dispose of {this.GetType().Name}.", errors);
+            }
         }
     }
 }
