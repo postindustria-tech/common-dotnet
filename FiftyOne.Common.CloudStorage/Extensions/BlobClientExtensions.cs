@@ -1,9 +1,6 @@
 ﻿using FiftyOne.Common.CloudStorage.Concepts;
 using FiftyOne.Common.CloudStorage.StreamWrappers;
 using FiftyOne.Common.CloudStorage.Uploader;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace FiftyOne.Common.CloudStorage.Extensions

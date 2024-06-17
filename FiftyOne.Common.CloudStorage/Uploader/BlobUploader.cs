@@ -3,7 +3,6 @@ using FiftyOne.Common.CloudStorage.StreamWrappers;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace FiftyOne.Common.CloudStorage.Uploader
 {
