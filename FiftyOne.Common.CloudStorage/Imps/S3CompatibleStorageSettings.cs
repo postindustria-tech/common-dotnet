@@ -46,7 +46,8 @@ namespace FiftyOne.Common.CloudStorage.Imps
                         S3BucketName,
                         S3BaseUrl
                     )
-                )
+                ),
+                false
             );
     }
 }

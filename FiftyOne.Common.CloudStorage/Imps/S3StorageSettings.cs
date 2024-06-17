@@ -46,7 +46,8 @@ namespace FiftyOne.Common.CloudStorage.Imps
                         S3SecretKey,
                         S3Region,
                         S3BucketName)
-                    )
-                );
+                    ),
+                false
+            );
     }
 }
