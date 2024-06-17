@@ -13,8 +13,10 @@ namespace FiftyOne.Common.CloudStorageTests
 {
     public class BlobClientsTest
     {
+        [Ignore("For local testing only")]
         [Test]
         [TestCase("azurite", "ContainerName=unit-tests;DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;")]
+        [TestCase("s3 ninja", "S3AccessKey=AKIAIOSFODNN7EXAMPLE;S3SecretKey=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;S3BucketName=unit-tests;S3Endpoint=http://localhost:9444/;S3BaseUrl=http://localhost:9444/{bucket}/{key};S3UseSSL=true;S3Region=s3")]
         public async Task TestBlobClient(string _, string packedConnectionString)
         {
             const string mimeType = "text/plain";
