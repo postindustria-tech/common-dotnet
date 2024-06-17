@@ -3,17 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Namotion.Reflection;
-using FiftyOne.Common.CloudStorage.Imps;
 
 namespace FiftyOne.Common.CloudStorage.Factory
 {
     public static class BlobClientFactory
     {
-        private static IEnumerable<Type> settingsTypes = typeof(BlobClientFactory).Assembly
-            .GetTypes()
-            .Where(t => !t.IsAbstract && typeof(IBlobClientBuilder).IsAssignableFrom(t))
-            .ToList();
-
         public static IBlobClientBuilder ParseSettings(string packedConnectionString)
         {
             var errors = new List<Exception>();
@@ -23,13 +17,13 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 .Select(s => s.Split("=", 2))
                 .Where(x => x.Length == 2)
                 .Select(x => new KeyValuePair<string, string>(x[0], x[1])));
-            foreach (Type type in settingsTypes)
+            foreach (var constructor in GetApplicableConstructors(d.Keys, errors))
             {
                 try
                 {
                     ISet<string> consumedParameters;
                     results.Add(new Tuple<IBlobClientBuilder, ISet<string>>(
-                        ConstructFromDictionary<IBlobClientBuilder>(d, type, out consumedParameters),
+                        (IBlobClientBuilder)ConstructFromDictionary(d, constructor, out consumedParameters),
                         consumedParameters));
                 }
                 catch (Exception ex)
@@ -61,44 +55,76 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 packedConnectionString);
         }
 
-        public static T ConstructFromDictionary<T>(Dictionary<string, string> dict, Type type, out ISet<string> consumedParameters)
+        private static IEnumerable<ConstructorInfo> GetAllBuilderConstructors()
         {
-            if (!typeof(T).IsAssignableFrom(type))
+            var allTypes = typeof(BlobClientFactory).Assembly
+                .GetTypes()
+                .Where(t => !t.IsAbstract && typeof(IBlobClientBuilder).IsAssignableFrom(t));
+            foreach (var nextType in allTypes)
             {
-                throw new ArgumentException($"{typeof(T).FullName} is not assignable from {type.FullName}.", nameof(type));
+                var constructors = nextType.GetConstructors();
+#if DEBUG
+                if (constructors.Length == 0)
+                {
+                    throw new InvalidOperationException($"Type {nextType.FullName} has no accessible constructors.");
+                }
+#endif
+                foreach (var constructor in constructors)
+                {
+#if DEBUG
+                    var nonStringParams = constructor.GetParameters()
+                        .Where(p => p.ParameterType != typeof(string))
+                        .Select(p => p.Name)
+                        .ToList();
+                    if (nonStringParams.Count > 0)
+                    {
+                        string nonStringParamNames = string.Join(", ", nonStringParams);
+                        throw new InvalidOperationException($"Constructor {constructor} has non-string parameters: {nonStringParamNames}.");
+                    }
+                    var sinks = constructor.GetParameters()
+                        .Where(p => p.IsDefined(typeof(UnusedParametersSinkAttribute), false))
+                        .Select(p => p.Name)
+                        .ToList();
+                    if (sinks.Count > 1)
+                    {
+                        string sinkParamNames = string.Join(", ", sinks);
+                        throw new InvalidOperationException($"Constructor {constructor} has multiple parameters attributed with {nameof(UnusedParametersSinkAttribute)}: {sinkParamNames}.");
+                    }
+#endif
+                    yield return constructor;
+                }
             }
+        }
 
-            var constructors = type.GetConstructors();
-            if (constructors.Length == 0)
+        private static IEnumerable<ConstructorInfo> GetApplicableConstructors(
+            IReadOnlyCollection<string> keys,
+            ICollection<Exception> errors)
+        {
+            var allConstructors = GetAllBuilderConstructors();
+            var failures = allConstructors
+                .Select(c => c.ReflectedType)
+                .Distinct()
+                .SelectMany(t =>
+                {
+                    var forbiddenKeys = keys.Where(k => t.GetProperty(k) is null).ToList();
+                    return forbiddenKeys.Count > 0
+                        ? new[] { new Tuple<Type, IEnumerable<string>>(t, forbiddenKeys) }
+                        : Enumerable.Empty<Tuple<Type, IEnumerable<string>>>();
+                })
+                .ToList();
+            foreach (var nextFailure in failures)
             {
-                throw new ArgumentException($"{typeof(T).FullName} has no accessible constructors.", nameof(type));
+                string unusedKeys = string.Join(", ", nextFailure.Item2);
+                errors.Add(new ArgumentException($"Type {nextFailure.Item1.FullName} does not support: {unusedKeys}.", unusedKeys));
             }
-            var errors = new List<Exception>();
-            foreach (var constructor in constructors)
-            {
-                object result;
-                try
-                {
-                    result = ConstructFromDictionary(dict, constructor, out consumedParameters);
-                }
-                catch (Exception ex)
-                {
-                    errors.Add(ex);
-                    continue;
-                }
-                if (result is T t)
-                {
-                    return t;
-                }
-                throw new ArgumentException($"Result type '{result.GetType().FullName}' does not implement '{typeof(T).Name}'.", typeof(T).FullName);
-            }
-            throw new AggregateException($"Failed to find suitable constructor for '{type.FullName}'.", errors);
+            var failedTypes = failures.Select(p => p.Item1);
+            return allConstructors.Where(c => !failedTypes.Contains(c.ReflectedType));
         }
 
         private static object ConstructFromDictionary(Dictionary<string, string> dict, ConstructorInfo constructor, out ISet<string> consumedParameters) {
             var parameters = constructor.GetParameters();
             var args = new object?[parameters.Length];
-            var sinks = new HashSet<int>();
+            int? sinkPosition = null;
             var usedUpParameters = new HashSet<string>();
             var errors = new List<Exception>();
 
@@ -111,7 +137,7 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 }
                 if (param.GetCustomAttribute<UnusedParametersSinkAttribute>() != null)
                 {
-                    sinks.Add(param.Position);
+                    sinkPosition = param.Position;
                     continue;
                 }
                 var contextualParameter = param.ToContextualParameter();
@@ -128,28 +154,22 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 }
             }
 
-            switch (sinks.Count)
+            if (sinkPosition.HasValue)
             {
-                case 0:
-                    consumedParameters = usedUpParameters;
-                    foreach (var key in dict.Keys
-                        .Where(k => !usedUpParameters.Contains(k))
-                        .Where(k => constructor.ReflectedType.GetProperty(k) is null))
-                    {
-                        errors.Add(new ArgumentException($"Unused argument: {key}", key));
-                    }
-                    break;
-                case 1:
-                    consumedParameters = new HashSet<string>(dict.Keys);
-                    args[sinks.First()] = string.Join(";", dict
-                        .Where(kvp => !usedUpParameters.Contains(kvp.Key))
-                        .Select(kvp => $"{kvp.Key}={kvp.Value}"));
-                    break;
-                default:
-                    consumedParameters = new HashSet<string>();
-                    var sinkDescriptions = string.Join(", ", sinks.Select(j => $"({j}: {parameters[j].Name})"));
-                    errors.Add(new ArgumentException($"Multiple occurrences of {nameof(UnusedParametersSinkAttribute)} found: {sinkDescriptions}", constructor.ToString()));
-                    break;
+                consumedParameters = new HashSet<string>(dict.Keys);
+                args[sinkPosition.Value] = string.Join(";", dict
+                    .Where(kvp => !usedUpParameters.Contains(kvp.Key))
+                    .Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            } 
+            else
+            {
+                consumedParameters = usedUpParameters;
+                foreach (var key in dict.Keys
+                    .Where(k => !usedUpParameters.Contains(k))
+                    .Where(k => constructor.ReflectedType.GetProperty(k) is null))
+                {
+                    errors.Add(new ArgumentException($"Unused argument: {key}", key));
+                }
             }
 
             if (errors.Count > 0)
