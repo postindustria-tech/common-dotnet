@@ -9,8 +9,10 @@ namespace FiftyOne.Common.CloudStorage.Imps
     {
         public string AccountName { get; private set; }
         public string AccountKey { get; private set; }
-        public string BlobEndpoint { get; private set; }
+        public string? BlobEndpoint { get; private set; }
         public string ContainerName { get; private set; }
+        public string? DefaultEndpointsProtocol { get; private set; }
+        public string? EndpointSuffix { get; private set; }
 
         public AzureStorageSettings(
             string ContainerName,
@@ -29,12 +31,13 @@ namespace FiftyOne.Common.CloudStorage.Imps
             string AccountKey,
             string DefaultEndpointsProtocol,
             string EndpointSuffix)
-            : this(
-                  ContainerName, 
-                  AccountName, 
-                  AccountKey,
-                  $"{DefaultEndpointsProtocol}://{AccountName}.{EndpointSuffix}/")
-        { }
+        {
+            this.AccountName = AccountName;
+            this.AccountKey = AccountKey;
+            this.ContainerName = ContainerName;
+            this.DefaultEndpointsProtocol = DefaultEndpointsProtocol;
+            this.EndpointSuffix = EndpointSuffix;
+        }
 
 
         public IBlobClient Build()
@@ -42,7 +45,11 @@ namespace FiftyOne.Common.CloudStorage.Imps
             return
                 new BlobClientAdapter(
                     new AzureBlobClient(
-                        new AzureBlobSettings(AccountName, AccountKey, BlobEndpoint, ContainerName)
+                        new AzureBlobSettings(
+                            AccountName, 
+                            AccountKey, 
+                            BlobEndpoint ?? $"{DefaultEndpointsProtocol}://{AccountName}.{EndpointSuffix}/", 
+                            ContainerName)
                     )
                 );
         }

@@ -9,16 +9,15 @@ namespace FiftyOne.Common.CloudStorage.Factory
 {
     public static class BlobClientFactory
     {
-        private static Type[] settingsTypes =
-        {
-            typeof(AzureStorageSettings),
-            typeof(S3StorageSettings),
-        };
+        private static IEnumerable<Type> settingsTypes = typeof(BlobClientFactory).Assembly
+            .GetTypes()
+            .Where(t => !t.IsAbstract && typeof(IBlobClientBuilder).IsAssignableFrom(t))
+            .ToList();
 
         public static IBlobClientBuilder ParseSettings(string packedConnectionString)
         {
             var errors = new List<Exception>();
-            var results = new List<IBlobClientBuilder>();
+            var results = new List<Tuple<IBlobClientBuilder, ISet<string>>>();
             var d = new Dictionary<string, string>(
                 packedConnectionString.Split(";")
                 .Select(s => s.Split("=", 2))
@@ -28,7 +27,10 @@ namespace FiftyOne.Common.CloudStorage.Factory
             {
                 try
                 {
-                    results.Add(ConstructFromDictionary<IBlobClientBuilder>(d, type));
+                    ISet<string> consumedParameters;
+                    results.Add(new Tuple<IBlobClientBuilder, ISet<string>>(
+                        ConstructFromDictionary<IBlobClientBuilder>(d, type, out consumedParameters),
+                        consumedParameters));
                 }
                 catch (Exception ex)
                 {
@@ -38,18 +40,28 @@ namespace FiftyOne.Common.CloudStorage.Factory
             switch (results.Count)
             {
                 case 1:
-                    return results[0];
+                    return results[0].Item1;
                 case 0:
                     throw new AggregateException($"Failed to process {nameof(packedConnectionString)}", errors);
                 default:
-                    string availableResultTypes = string.Join(", ", results.Select(x => x.GetType()));
-                    throw new ArgumentException(
-                        $"Ambiguous {nameof(packedConnectionString)} -- properties provided for: {availableResultTypes}",
-                        packedConnectionString);
+                    break;
             }
+            var usedUpIntersection = results.SelectMany(x => x.Item2).Distinct().ToList();
+            var bestMatches = results.Where(x => x.Item2.SetEquals(usedUpIntersection)).ToList();
+            if (bestMatches.Count == 1)
+            {
+                return bestMatches[0].Item1;
+            }
+            // multiple matches using same key sets
+            // or
+            // multiple matches using different key subsets
+            string availableResultTypes = string.Join(", ", results.Select(x => x.GetType()));
+            throw new ArgumentException(
+                $"Ambiguous {nameof(packedConnectionString)} -- properties provided for: {availableResultTypes}",
+                packedConnectionString);
         }
 
-        public static T ConstructFromDictionary<T>(Dictionary<string, string> dict, Type type)
+        public static T ConstructFromDictionary<T>(Dictionary<string, string> dict, Type type, out ISet<string> consumedParameters)
         {
             if (!typeof(T).IsAssignableFrom(type))
             {
@@ -67,7 +79,7 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 object result;
                 try
                 {
-                    result = ConstructFromDictionary(dict, constructor);
+                    result = ConstructFromDictionary(dict, constructor, out consumedParameters);
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +95,7 @@ namespace FiftyOne.Common.CloudStorage.Factory
             throw new AggregateException($"Failed to find suitable constructor for '{type.FullName}'.", errors);
         }
 
-        private static object ConstructFromDictionary(Dictionary<string, string> dict, ConstructorInfo constructor) {
+        private static object ConstructFromDictionary(Dictionary<string, string> dict, ConstructorInfo constructor, out ISet<string> consumedParameters) {
             var parameters = constructor.GetParameters();
             var args = new object?[parameters.Length];
             var sinks = new HashSet<int>();
@@ -105,29 +117,36 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 var contextualParameter = param.ToContextualParameter();
                 if (dict.TryGetValue(param.Name, out string value))
                 {
-                    if (value is null && contextualParameter.Nullability == Nullability.NotNullable)
-                    {
-                        errors.Add(new ArgumentNullException($"The non-nullable property '{param.Name}' cannot be null.", param.Name));
-                        continue;
-                    }
                     args[param.Position] = value;
+                    usedUpParameters.Add(param.Name);
+                    continue;
                 }
-                else
+                if (contextualParameter.Nullability == Nullability.NotNullable)
                 {
-                    errors.Add(new KeyNotFoundException($"The property '{param.Name}' is missing in the dictionary."));
+                    errors.Add(new ArgumentNullException(param.Name, $"The non-nullable property '{param.Name}' cannot be null."));
+                    continue;
                 }
             }
 
             switch (sinks.Count)
             {
                 case 0:
+                    consumedParameters = usedUpParameters;
+                    foreach (var key in dict.Keys
+                        .Where(k => !usedUpParameters.Contains(k))
+                        .Where(k => constructor.ReflectedType.GetProperty(k) is null))
+                    {
+                        errors.Add(new ArgumentException($"Unused argument: {key}", key));
+                    }
                     break;
                 case 1:
-                    args[sinks.First()] = string.Join(", ", dict
+                    consumedParameters = new HashSet<string>(dict.Keys);
+                    args[sinks.First()] = string.Join(";", dict
                         .Where(kvp => !usedUpParameters.Contains(kvp.Key))
                         .Select(kvp => $"{kvp.Key}={kvp.Value}"));
                     break;
                 default:
+                    consumedParameters = new HashSet<string>();
                     var sinkDescriptions = string.Join(", ", sinks.Select(j => $"({j}: {parameters[j].Name})"));
                     errors.Add(new ArgumentException($"Multiple occurrences of {nameof(UnusedParametersSinkAttribute)} found: {sinkDescriptions}", constructor.ToString()));
                     break;
