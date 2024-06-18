@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiftyOne.Common.Tests", "Fi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiftyOne.Common.CloudStorage", "FiftyOne.Common.CloudStorage\FiftyOne.Common.CloudStorage.csproj", "{033356D0-587E-4DF3-AFB8-A0408FAC1880}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.Common.CloudStorageTests", "FiftyOne.Common.CloudStorageTests\FiftyOne.Common.CloudStorageTests.csproj", "{5B85F757-1EA4-4BCA-B2BF-31B3F5CDCB83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiftyOne.Common.CloudStorageTests", "FiftyOne.Common.CloudStorageTests\FiftyOne.Common.CloudStorageTests.csproj", "{5B85F757-1EA4-4BCA-B2BF-31B3F5CDCB83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
