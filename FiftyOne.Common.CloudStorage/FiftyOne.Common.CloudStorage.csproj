@@ -3,7 +3,22 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <Authors>51Degrees Engineering</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/51Degrees/common-dotnet</RepositoryUrl>
+    <PackageTags>51degrees</PackageTags>
+    <Copyright>51Degrees Mobile Experts Limited</Copyright>
+    <PackageProjectUrl>https://51degrees.com</PackageProjectUrl>
+    <PackageId>FiftyOne.Common.CloudStorage</PackageId>
+    <Title>Common CRUD API lib for Azure blobs and AWS S3 using Blobject</Title>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Blobject.AmazonS3" Version="5.0.6" />
