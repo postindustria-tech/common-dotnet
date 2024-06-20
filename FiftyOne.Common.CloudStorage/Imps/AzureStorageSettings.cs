@@ -97,7 +97,7 @@ namespace FiftyOne.Common.CloudStorage.Imps
                         new AzureBlobSettings(
                             AccountName, 
                             AccountKey, 
-                            BlobEndpoint ?? $"{DefaultEndpointsProtocol}://{AccountName}.{EndpointSuffix}/", 
+                            BlobEndpoint ?? $"{DefaultEndpointsProtocol}://{AccountName}.blob.{EndpointSuffix}/", 
                             ContainerName
                         )
                     ),
