@@ -19,7 +19,7 @@ namespace FiftyOne.Common.CloudStorageTests
             string blobText = $"me is da blob ({ts})";
             string blobName = $"test-blob-{ts}.txt";
 
-            var client = BlobClientFactory.ParseSettings(packedConnectionString).Build();
+            IBlobClient client = BlobClientFactory.ParseSettings(packedConnectionString).Build();
             
             // write
 
