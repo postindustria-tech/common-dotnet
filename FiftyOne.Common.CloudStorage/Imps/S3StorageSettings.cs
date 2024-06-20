@@ -6,14 +6,49 @@ using System;
 
 namespace FiftyOne.Common.CloudStorage.Imps
 {
+    /// <summary>
+    /// Connection settings to AWS S3 blob storage.
+    /// Backed by <see cref="AwsSettings"/>.
+    /// </summary>
     public class S3StorageSettings : IBlobClientBuilder
     {
+        /// <summary>
+        /// See <see cref="AwsSettings.AccessKey"/>
+        /// </summary>
         public string S3AccessKey { get; private set; }
+
+        /// <summary>
+        /// See <see cref="AwsSettings.SecretKey"/>
+        /// </summary>
         public string S3SecretKey { get; private set; }
+
+        /// <summary>
+        /// See <see cref="AwsSettings.Region"/>
+        /// </summary>
         public string S3Region { get; private set; }
+
+        /// <summary>
+        /// See <see cref="AwsSettings.Bucket"/>
+        /// </summary>
         public string S3BucketName { get; private set; }
+
+        /// <summary>
+        /// See <see cref="AwsSettings.Ssl"/>
+        /// </summary>
         public bool? S3UseSSL { get; private set; }
 
+        /// <summary>
+        /// Primary constructor for
+        /// connection settings to AWS S3 blob storage.
+        /// Backed by <see cref="AwsSettings"/>.
+        /// </summary>
+        /// <param name="S3Endpoint">See <see cref="AwsSettings.Endpoint"/></param>
+        /// <param name="S3UseSSL">See <see cref="AwsSettings.Ssl"/></param>
+        /// <param name="S3AccessKey">See <see cref="AwsSettings.AccessKey"/></param>
+        /// <param name="S3SecretKey">See <see cref="AwsSettings.SecretKey"/></param>
+        /// <param name="S3Region">See <see cref="AwsSettings.Region"/></param>
+        /// <param name="S3BucketName">See <see cref="AwsSettings.Bucket"/></param>
+        /// <param name="S3BaseUrl">See <see cref="AwsSettings.BaseUrl"/></param>
         public S3StorageSettings(
             string S3AccessKey,
             string S3SecretKey,
@@ -31,6 +66,10 @@ namespace FiftyOne.Common.CloudStorage.Imps
             }
         }
 
+        /// <summary>
+        /// Uses properties to build the client.
+        /// </summary>
+        /// <returns>See <see cref="IBlobClient"/>.</returns>
         public IBlobClient Build()
             => new BlobClientAdapter(
                 new AmazonS3BlobClient(
@@ -47,7 +86,9 @@ namespace FiftyOne.Common.CloudStorage.Imps
                         S3Region,
                         S3BucketName)
                     ),
-                false
+                false,
+                S3AccessKey,
+                S3BucketName
             );
     }
 }

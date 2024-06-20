@@ -6,15 +6,27 @@ using System.Text;
 
 namespace FiftyOne.Common.CloudStorage.Imps.Adapters
 {
-    public class FullBlobData : IBlobData
+    /// <summary>
+    /// Wraps `byte[]` into <see cref="IBlobData"/>.
+    /// </summary>
+    internal class FullBlobData : IBlobData
     {
+        /// <summary>
+        /// Readable stream to pre-downloaded blob content.
+        /// </summary>
         public Stream Data { get; private set; }
 
+        /// <summary>
+        /// Wraps `byte[]` into <see cref="IBlobData"/>.
+        /// </summary>
         public FullBlobData(byte[] bytes)
         {
             Data = new MemoryStream(bytes);
         }
 
+        /// <summary>
+        /// Disposes of underlying resources.
+        /// </summary>
         public void Dispose() 
             => Data.Dispose();
     }

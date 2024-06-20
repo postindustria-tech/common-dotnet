@@ -6,19 +6,44 @@ using System.IO;
 
 namespace FiftyOne.Common.CloudStorage.Uploader
 {
-    public class BlobUploader: IBlobUploader
+    /// <summary>
+    /// Encapsulates both temporary resource
+    /// and readable stream handler into
+    /// a provider of writable stream
+    /// that invokes the handler on written data
+    /// once disposed of.
+    /// </summary>
+    internal class BlobUploader: IBlobUploader
     {
         private readonly Action<Stream> uploadDelegate;
         private readonly ITemporaryStreamWrapper temporaryStreamWrapper;
 
+        /// <summary>
+        /// Exposes writable stream.
+        /// </summary>
         public Stream WritableStream => temporaryStreamWrapper.WritableStream;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uploadDelegate">
+        /// Action to read and handle pre-written data,
+        /// e.g. upload callback.
+        /// </param>
+        /// <param name="temporaryStreamWrapper">
+        /// A temporary resource that provides write/read streams.
+        /// </param>
         public BlobUploader(Action<Stream> uploadDelegate, ITemporaryStreamWrapper temporaryStreamWrapper)
         {
             this.uploadDelegate = uploadDelegate;
             this.temporaryStreamWrapper = temporaryStreamWrapper;
         }
 
+        /// <summary>
+        /// Invokes the data handler action
+        /// and disposes of underlying resources.
+        /// </summary>
+        /// <exception cref="AggregateException"></exception>
         public void Dispose()
         {
             var errors = new List<Exception>();

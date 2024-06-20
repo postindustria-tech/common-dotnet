@@ -6,8 +6,22 @@ using Namotion.Reflection;
 
 namespace FiftyOne.Common.CloudStorage.Factory
 {
+    /// <summary>
+    /// Used to deserialize connection settings into specific <see cref="IBlobClientBuilder"/>.
+    /// </summary>
     public static class BlobClientFactory
     {
+        /// <summary>
+        /// Deserializes string into specific builder instance.
+        /// </summary>
+        /// <param name="packedConnectionString">
+        /// Azure-like connection string.
+        /// Semicolon-separated array of equals-separated key-value pairs.
+        /// </param>
+        /// <returns>Deserialized settings as <see cref="IBlobClientBuilder"/>.</returns>
+        /// <exception cref="ArgumentException">
+        /// The connection string is not convertible to a single storage client builder.
+        /// </exception>
         public static IBlobClientBuilder ParseSettings(string packedConnectionString)
         {
             var errors = new List<Exception>();
@@ -36,7 +50,10 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 case 1:
                     return results[0].Item1;
                 case 0:
-                    throw new AggregateException($"Failed to process {nameof(packedConnectionString)}", errors);
+                    throw new ArgumentException(
+                        $"Invalid {nameof(packedConnectionString)}.",
+                        packedConnectionString,
+                        new AggregateException(errors));
                 default:
                     break;
             }
@@ -55,6 +72,15 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 packedConnectionString);
         }
 
+
+        /// <summary>
+        /// Enumerates all constructors of <see cref="IBlobClientBuilder"/>
+        /// implementations available in this assembly.
+        /// </summary>
+        /// <returns>Relevant constructors.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Some implementing type does not expose the constructor/s.
+        /// </exception>
         private static IEnumerable<ConstructorInfo> GetAllBuilderConstructors()
         {
             var allTypes = typeof(BlobClientFactory).Assembly
@@ -81,21 +107,20 @@ namespace FiftyOne.Common.CloudStorage.Factory
                         string nonStringParamNames = string.Join(", ", nonStringParams);
                         throw new InvalidOperationException($"Constructor {constructor} has non-string parameters: {nonStringParamNames}.");
                     }
-                    var sinks = constructor.GetParameters()
-                        .Where(p => p.IsDefined(typeof(UnusedParametersSinkAttribute), false))
-                        .Select(p => p.Name)
-                        .ToList();
-                    if (sinks.Count > 1)
-                    {
-                        string sinkParamNames = string.Join(", ", sinks);
-                        throw new InvalidOperationException($"Constructor {constructor} has multiple parameters attributed with {nameof(UnusedParametersSinkAttribute)}: {sinkParamNames}.");
-                    }
 #endif
                     yield return constructor;
                 }
             }
         }
 
+
+        /// <summary>
+        /// Filters available constructors down
+        /// to the ones usable with the current settings.
+        /// </summary>
+        /// <param name="keys">Keys in the currently-deserialized string.</param>
+        /// <param name="errors">A collector of errors that mark some types as inapplicable.</param>
+        /// <returns>Constructors for types suitable for current keys.</returns>
         private static IEnumerable<ConstructorInfo> GetApplicableConstructors(
             IReadOnlyCollection<string> keys,
             ICollection<Exception> errors)
@@ -121,10 +146,18 @@ namespace FiftyOne.Common.CloudStorage.Factory
             return allConstructors.Where(c => !failedTypes.Contains(c.ReflectedType));
         }
 
+
+        /// <summary>
+        /// Attempts to use the constructor.
+        /// </summary>
+        /// <param name="dict">Properies from deserialized string.</param>
+        /// <param name="constructor">Constructor to attempt with.</param>
+        /// <param name="consumedParameters">Key of properties used by constructor.</param>
+        /// <returns>Instantiated object.</returns>
+        /// <exception cref="AggregateException">Something failed.</exception>
         private static object ConstructFromDictionary(Dictionary<string, string> dict, ConstructorInfo constructor, out ISet<string> consumedParameters) {
             var parameters = constructor.GetParameters();
             var args = new object?[parameters.Length];
-            int? sinkPosition = null;
             var usedUpParameters = new HashSet<string>();
             var errors = new List<Exception>();
 
@@ -133,11 +166,6 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 if (param.ParameterType.IsGenericType)
                 {
                     errors.Add(new ArgumentException($"The parameter '{param.Name}' is generic.", param.Name));
-                    continue;
-                }
-                if (param.GetCustomAttribute<UnusedParametersSinkAttribute>() != null)
-                {
-                    sinkPosition = param.Position;
                     continue;
                 }
                 var contextualParameter = param.ToContextualParameter();
@@ -154,22 +182,12 @@ namespace FiftyOne.Common.CloudStorage.Factory
                 }
             }
 
-            if (sinkPosition.HasValue)
+            consumedParameters = usedUpParameters;
+            foreach (var key in dict.Keys
+                .Where(k => !usedUpParameters.Contains(k))
+                .Where(k => constructor.ReflectedType.GetProperty(k) is null))
             {
-                consumedParameters = new HashSet<string>(dict.Keys);
-                args[sinkPosition.Value] = string.Join(";", dict
-                    .Where(kvp => !usedUpParameters.Contains(kvp.Key))
-                    .Select(kvp => $"{kvp.Key}={kvp.Value}"));
-            } 
-            else
-            {
-                consumedParameters = usedUpParameters;
-                foreach (var key in dict.Keys
-                    .Where(k => !usedUpParameters.Contains(k))
-                    .Where(k => constructor.ReflectedType.GetProperty(k) is null))
-                {
-                    errors.Add(new ArgumentException($"Unused argument: {key}", key));
-                }
+                errors.Add(new ArgumentException($"Unused argument: {key}", key));
             }
 
             if (errors.Count > 0)

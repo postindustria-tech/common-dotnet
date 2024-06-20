@@ -5,8 +5,23 @@ using System.Threading;
 
 namespace FiftyOne.Common.CloudStorage.Concepts
 {
+    /// <summary>
+    /// Abstract way to upload, iterate over, download and delete blobs from blob-like storage.
+    /// </summary>
     public interface IBlobClient
     {
+        /// <summary>
+        /// Human-meaningful equivalent for "AccountName" concept.
+        /// For analytics purposes.
+        /// </summary>
+        string EffectiveAccountName { get; }
+
+        /// <summary>
+        /// Human-meaningful equivalent for "ContainerName" concept.
+        /// For logging purposes.
+        /// </summary>
+        string EffectiveContainerName { get; }
+
         /// <summary>
         /// Writes the data from the specified stream to the BLOB with the specified key.
         /// </summary>

@@ -4,12 +4,18 @@ using System.Collections.Generic;
 
 namespace FiftyOne.Common.CloudStorage.StreamWrappers
 {
+    /// <summary>
+    /// Encapsulates writing, reading and deleting temporary file.
+    /// </summary>
     public class TemporaryFile: ITemporaryStreamWrapper
     {
         private readonly string _path = Path.GetTempFileName();
         private Stream? _writeStream;
         private Stream? _readStream;
 
+        /// <summary>
+        /// Writable stream for the file.
+        /// </summary>
         public Stream WritableStream
         {
             get
@@ -21,6 +27,12 @@ namespace FiftyOne.Common.CloudStorage.StreamWrappers
                 return _writeStream;
             }
         }
+
+        /// <summary>
+        /// Readable stream for the file.
+        /// Disposes of writable stream
+        /// to flush the buffers before reading.
+        /// </summary>
         public Stream ReadableStream
         {
             get
@@ -35,6 +47,11 @@ namespace FiftyOne.Common.CloudStorage.StreamWrappers
             }
         }
 
+        /// <summary>
+        /// Disposes of all streams
+        /// and deletes the file.
+        /// </summary>
+        /// <exception cref="AggregateException"></exception>
         public void Dispose()
         {
             var errors = new List<Exception>();

@@ -59,7 +59,7 @@ namespace FiftyOne.Common.CloudStorageTests
         [TestCase("S3AccessKey=alpha;S3SecretKey=omega;S3Region=atlantis;S3BucketName=pufferfish;ContainerName=data;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1")]
         public void TestFailingToUnpack(string packedConnectionString)
         {
-            Assert.Throws<AggregateException>(() => BlobClientFactory.ParseSettings(packedConnectionString));
+            Assert.Throws<ArgumentException>(() => BlobClientFactory.ParseSettings(packedConnectionString));
         }
     }
 }
