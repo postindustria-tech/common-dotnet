@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <Authors>51Degrees Engineering</Authors>
-    <PackageReadmeFile>README-CloudStorage.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/51Degrees/common-dotnet</RepositoryUrl>
     <PackageTags>51degrees</PackageTags>
     <Copyright>51Degrees Mobile Experts Limited</Copyright>
@@ -14,16 +14,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\README-CloudStorage.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Blobject.AmazonS3" Version="5.0.6" />
     <PackageReference Include="Blobject.AzureBlob" Version="5.0.6" />
     <PackageReference Include="Namotion.Reflection" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
